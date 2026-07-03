@@ -1,0 +1,32 @@
+# 📦 Utils - Módulo de Utilidades
+# Este módulo contiene funciones y clases de utilidad para el agente de WhatsApp.
+
+from .logging import logger
+from .config import (
+    TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN,
+    TWILIO_WHATSAPP_NUMBER,
+    LLM_MODEL,
+    MISTRAL_API_KEY,
+    OPENROUTER_API_KEY,
+    GEMINI_API_KEY,
+    FIRESTORE_COLLECTION_KNOWLEDGE,
+    FIRESTORE_COLLECTION_PRODUCTS,
+    FIRESTORE_COLLECTION_FAQ,
+    FIRESTORE_COLLECTION_SESSIONS
+)
+
+__all__ = [
+    "logger",
+    "TWILIO_ACCOUNT_SID",
+    "TWILIO_AUTH_TOKEN",
+    "TWILIO_WHATSAPP_NUMBER",
+    "LLM_MODEL",
+    "MISTRAL_API_KEY",
+    "OPENROUTER_API_KEY",
+    "GEMINI_API_KEY",
+    "FIRESTORE_COLLECTION_KNOWLEDGE",
+    "FIRESTORE_COLLECTION_PRODUCTS",
+    "FIRESTORE_COLLECTION_FAQ",
+    "FIRESTORE_COLLECTION_SESSIONS"
+]
