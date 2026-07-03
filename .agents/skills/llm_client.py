@@ -4,7 +4,7 @@
 import os
 import hashlib
 import requests
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from datetime import datetime, timedelta
 from google.cloud import firestore
 from utils.logging import logger
@@ -13,7 +13,12 @@ from utils.config import (
     MISTRAL_API_KEY,
     OPENROUTER_API_KEY,
     GEMINI_API_KEY,
-    FIRESTORE_COLLECTION_SESSIONS
+    LLM_TEMPERATURE,
+    LLM_MAX_TOKENS,
+    LLM_CACHING,
+    LLM_CACHE_EXPIRY_HOURS,
+    FIRESTORE_COLLECTION_RESPONSE_CACHE,
+    FIRESTORE_COLLECTION_TOKEN_USAGE
 )
 
 # Inicializar cliente de Firestore para caching
@@ -41,6 +46,10 @@ class LLMClient:
         self.model = model or LLM_MODEL
         self.api_key = self._get_api_key()
         self.api_url = self._get_api_url()
+        self.temperature = LLM_TEMPERATURE
+        self.max_tokens = LLM_MAX_TOKENS
+        self.caching_enabled = LLM_CACHING
+        self.cache_expiry_hours = LLM_CACHE_EXPIRY_HOURS
         
         if not self.api_key:
             logger.error(f"No se encontró API key para el modelo {self.model}")
@@ -138,7 +147,7 @@ class LLMClient:
         
         --- Instrucciones ---
         1. **Idioma**: Responde **siempre en español** (a menos que el cliente pregunte en otro idioma).
-        2. **Longitud**: Sé **conciso** (máximo 200 palabras).
+        2. **Longitud**: Sé **conciso** (máximo {self.max_tokens//4} palabras).
         3. **Precisión**: Si no tienes la información en el contexto, responde: 
            "No tengo esa información, pero puedo derivarte a un agente humano."
         4. **Formato**: Usa **negritas** para nombres de productos o términos importantes.
@@ -173,19 +182,21 @@ class LLMClient:
             # Construir prompt
             prompt = self.build_prompt(message, session_context, knowledge_context)
             
-            # Buscar en caché
-            cached_response = await self._get_cached_response(prompt)
-            if cached_response:
-                logger.info("Respuesta obtenida de caché")
-                return cached_response
+            # Buscar en caché (si está habilitado)
+            if self.caching_enabled:
+                cached_response = await self._get_cached_response(prompt)
+                if cached_response:
+                    logger.info("Respuesta obtenida de caché")
+                    return cached_response
             
             # Llamar al LLM
             response = await self._call_llm_api(prompt)
             if not response:
                 return None
             
-            # Guardar en caché
-            await self._cache_response(prompt, response)
+            # Guardar en caché (si está habilitado)
+            if self.caching_enabled:
+                await self._cache_response(prompt, response)
             
             return response
             
@@ -223,8 +234,8 @@ class LLMClient:
         payload = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
-            "max_tokens": 200
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens
         }
         
         try:
@@ -258,8 +269,8 @@ class LLMClient:
         payload = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
-            "max_tokens": 200
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens
         }
         
         try:
@@ -290,8 +301,8 @@ class LLMClient:
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
-                "temperature": 0.7,
-                "maxOutputTokens": 200
+                "temperature": self.temperature,
+                "maxOutputTokens": self.max_tokens
             }
         }
         
@@ -329,17 +340,18 @@ class LLMClient:
         try:
             # Usar hash del prompt para evitar problemas con caracteres especiales
             prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()
-            cache_ref = firestore_client.collection("response_cache").document(prompt_hash)
+            cache_ref = firestore_client.collection(FIRESTORE_COLLECTION_RESPONSE_CACHE).document(prompt_hash)
             cache_doc = cache_ref.get()
             
             if cache_doc.exists:
                 cache_data = cache_doc.to_dict()
                 timestamp = cache_data.get("timestamp")
                 
-                # Verificar si la caché está vigente (menos de 1 hora)
+                # Verificar si la caché está vigente
                 if timestamp:
                     cache_time = datetime.fromisoformat(timestamp)
-                    if datetime.utcnow() - cache_time < timedelta(hours=1):
+                    expiry_time = timedelta(hours=self.cache_expiry_hours)
+                    if datetime.utcnow() - cache_time < expiry_time:
                         logger.info("Respuesta obtenida de caché")
                         return cache_data.get("response")
             
@@ -359,7 +371,7 @@ class LLMClient:
         """
         try:
             prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()
-            cache_ref = firestore_client.collection("response_cache").document(prompt_hash)
+            cache_ref = firestore_client.collection(FIRESTORE_COLLECTION_RESPONSE_CACHE).document(prompt_hash)
             cache_ref.set({
                 "prompt": prompt,
                 "response": response,
@@ -381,7 +393,7 @@ class LLMClient:
             output_tokens: Tokens de salida usados.
         """
         try:
-            log_ref = firestore_client.collection("token_usage").document()
+            log_ref = firestore_client.collection(FIRESTORE_COLLECTION_TOKEN_USAGE).document()
             total_tokens = input_tokens + output_tokens
             
             # Calcular costo (aproximado)

@@ -1,0 +1,32 @@
+# 📦 Dependencias del Agente de WhatsApp
+# Este archivo lista todas las dependencias de Python necesarias para el proyecto.
+
+# FastAPI y Uvicorn (para el backend)
+fastapi==0.109.0
+uvicorn==0.27.0
+python-multipart==0.0.6
+
+# Twilio (para WhatsApp)
+twilio==9.0.0
+
+# Google Cloud (Firestore, Secret Manager, etc.)
+google-cloud-firestore==2.11.1
+google-cloud-secret-manager==2.16.0
+
+# HTTP requests (para APIs de LLM)
+requests==2.31.0
+
+# YAML (para config.yaml)
+pyyaml==6.0.1
+
+# Variables de entorno
+python-dotenv==1.0.0
+
+# Logging (para Cloud Logging)
+python-json-logger==2.0.7
+
+# Pydantic (para validación de datos)
+pydantic==2.5.3
+
+# Typing (para anotaciones de tipo)
+typing-extensions==4.8.0

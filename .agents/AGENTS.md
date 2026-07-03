@@ -12,34 +12,42 @@ Desarrollar un **agente de WhatsApp para servicio al cliente y ventas** que:
 
 ## 📂 **Estructura de Directorios**
 ```bash
-.agents/
-├── AGENTS.md                    # Este documento (visión general)
-├── docs/                        # Documentación técnica y guías
-│   ├── requirements.md          # Requisitos detallados del proyecto
-│   ├── gcp_architecture.md      # Arquitectura en GCP
-│   ├── gcp_services.md          # Servicios GCP utilizados y costos
-│   ├── deployment.md            # Guía de despliegue en GCP
-│   ├── user_guide.md            # Guía para usuarios finales
-│   └── maintenance.md           # Guía de mantenimiento y monitoreo
-├── plans/                       # Planificación y estrategia
-│   ├── master_plan.md           # Plan maestro (este documento extendido)
-│   ├── architecture_diagram.md # Diagrama de arquitectura (Mermaid)
-│   └── scaling_plan.md          # Plan de escalamiento futuro
-├── workflows/                   # Flujos de trabajo del agente
-│   ├── whatsapp_webhook.md      # Flujo del webhook de WhatsApp
-│   ├── llm_integration.md       # Integración con Mistral/Gemini/OpenRouter
-│   └── customer_service.md      # Flujo de servicio al cliente
-├── skills/                      # Habilidades del agente (módulos de código)
-│   ├── whatsapp_handler.py      # Manejo de mensajes de WhatsApp
-│   ├── llm_client.py            # Cliente para Mistral/Gemini/OpenRouter
-│   ├── knowledge_base.py        # Base de conocimiento (empresa, productos, FAQ)
-│   └── response_generator.py    # Generador de respuestas contextualizadas
-├── scripts/                     # Scripts de automatización
-│   ├── deploy.sh                # Script para desplegar en GCP
-│   ├── monitor.sh               # Script para monitorear costos
-│   └── test_webhook.py          # Pruebas locales del webhook
-└── communication/               # Comunicación del equipo
-    └── team_updates.md          # Actualizaciones y decisiones del equipo
+.
+├── config.yaml                          # Configuración principal (todos los parámetros aquí)
+├── .env.example                         # Ejemplo de variables de entorno
+├── .gitignore                           # Archivos ignorados por Git
+├── Dockerfile                           # Configuración del contenedor para Cloud Run
+├── init_firestore.py                    # Script para inicializar Firestore con datos de config.yaml
+├── requirements.txt                     # Dependencias de Python
+├── README.md                            # Documentación principal del proyecto
+├── src/
+│   └── main.py                          # Backend principal (FastAPI)
+└── .agents/
+    ├── AGENTS.md                        # Este documento
+    ├── docs/
+    │   ├── requirements.md               # Requisitos detallados
+    │   └── gcp_architecture.md           # Arquitectura en GCP (costos, servicios, optimizaciones)
+    ├── plans/
+    │   ├── master_plan.md                # Plan maestro con fases, tareas y cronograma
+    │   └── architecture_diagram.md        # Diagramas de arquitectura (Mermaid)
+    ├── workflows/
+    │   ├── whatsapp_webhook.md           # Flujo del webhook de WhatsApp (Twilio + Cloud Run)
+    │   ├── llm_integration.md            # Integración con Mistral/OpenRouter/Gemini
+    │   └── customer_service.md            # Flujo de servicio al cliente (detección de intenciones, respuestas)
+    ├── skills/
+    │   ├── __init__.py
+    │   ├── whatsapp_handler.py           # Manejo de mensajes de WhatsApp (Twilio)
+    │   ├── llm_client.py                 # Cliente para Mistral/OpenRouter/Gemini (con caching)
+    │   ├── knowledge_base.py             # Acceso a Firestore (empresa, productos, FAQ)
+    │   ├── response_generator.py         # Generador de respuestas contextualizadas
+    │   ├── session_manager.py            # Manejo de sesiones de chat en Firestore
+    │   └── utils/
+    │       ├── __init__.py
+    │       ├── config.py                 # Configuración cargada desde config.yaml
+    │       └── logging.py                # Logging para Cloud Logging
+    └── scripts/
+        ├── deploy.sh                     # Script para desplegar en Cloud Run (usa config.yaml)
+        └── monitor.sh                    # Script para monitorear costos, logs y métricas
 ```
 
 ---
@@ -73,22 +81,22 @@ Desarrollar un **agente de WhatsApp para servicio al cliente y ventas** que:
 ## 📅 **Fases del Proyecto**
 
 ### **🔹 Fase 1: Configuración Inicial (Días 1-2)**
-- [ ] Crear proyecto en GCP y habilitar servicios (Cloud Run, Firestore).
-- [ ] Configurar cuenta en Twilio y WhatsApp Sandbox.
-- [ ] Desarrollar esqueleto del backend (FastAPI/Flask + Twilio).
-- [ ] Probar webhook localmente con ngrok.
+- [x] Crear proyecto en GCP y habilitar servicios.
+- [x] Configurar cuenta en Twilio y WhatsApp Sandbox.
+- [x] Desarrollar esqueleto del backend (FastAPI + Twilio).
+- [x] Probar webhook localmente con ngrok.
 
 **Entregables**:
 - Proyecto GCP configurado.
 - Cuenta Twilio funcional.
-- Código base del backend en `./src/`.
+- Código base del backend en `src/main.py`.
 
 ---
 
 ### **🔹 Fase 2: Base de Conocimiento y LLM (Días 3-4)**
-- [ ] Crear base de conocimiento en Firestore (empresa, productos, FAQ).
-- [ ] Integrar Mistral/OpenRouter para generar respuestas.
-- [ ] Desarrollar lógica de respuestas (combinar base de conocimiento + LLM).
+- [x] Crear base de conocimiento en Firestore.
+- [x] Integrar Mistral/OpenRouter para generar respuestas.
+- [x] Desarrollar lógica de respuestas (combinar base de conocimiento + LLM).
 
 **Entregables**:
 - Base de conocimiento en Firestore.
@@ -98,21 +106,23 @@ Desarrollar un **agente de WhatsApp para servicio al cliente y ventas** que:
 ---
 
 ### **🔹 Fase 3: Pruebas y Despliegue (Días 5-6)**
-- [ ] Pruebas locales con ngrok (simular webhook de Twilio).
 - [ ] Desplegar backend en Cloud Run.
-- [ ] Configurar monitoreo básico (Cloud Logging).
+- [ ] Configurar webhook de Twilio en producción.
+- [ ] Realizar pruebas de usuario con 5-10 clientes reales.
+- [ ] Configurar monitoreo (Cloud Logging).
 
 **Entregables**:
 - Agente funcional en producción.
 - Documentación de despliegue (`./.agents/docs/deployment.md`).
-- Pruebas con 5-10 mensajes reales.
+- Pruebas con mensajes reales.
 
 ---
 
 ### **🔹 Fase 4: Optimización y Documentación (Día 7)**
-- [ ] Optimizar costos (ajustar Cloud Run, reducir tokens en LLM).
-- [ ] Documentar guías de usuario y mantenimiento.
-- [ ] Plan de escalamiento para +100 usuarios/día.
+- [ ] Optimizar uso de LLM (caching, respuestas cortas).
+- [ ] Documentar guía de usuario.
+- [ ] Documentar guía de despliegue y mantenimiento.
+- [ ] Crear plan de escalamiento.
 
 **Entregables**:
 - Documentación completa.
@@ -123,67 +133,83 @@ Desarrollar un **agente de WhatsApp para servicio al cliente y ventas** que:
 ## 🛠️ **Requisitos Técnicos**
 
 ### **Backend (Cloud Run)**
-- **Lenguaje**: Python 3.10+ (FastAPI o Flask).
-- **Dependencias**:
+- **Lenguaje**: Python 3.10+ (FastAPI).
+- **Dependencias**: Ver `requirements.txt`.
+- **Estructura**:
   ```bash
-  fastapi==0.109.0
-  uvicorn==0.27.0
-  twilio==9.0.0
-  google-cloud-firestore==2.11.1
-  requests==2.31.0
-  python-dotenv==1.0.0
+  src/
+  └── main.py               # Backend principal (FastAPI)
   ```
 
 ### **Base de Conocimiento (Firestore)**
 - **Colecciones**:
-  - `company_info`: Descripción de la empresa.
+  - `knowledge_base`: Descripción de la empresa.
   - `products`: Lista de productos y precios.
   - `faq`: Preguntas frecuentes y respuestas.
   - `chat_sessions`: Historial de conversaciones.
+  - `response_cache`: Caching de respuestas frecuentes.
+  - `token_usage`: Registro de uso de tokens (LLM).
 
 ### **Integración con LLM**
-- **API Keys**: Se requieren claves para Mistral/OpenRouter/Gemini.
-- **Prompt Engineering**: Diseñar prompts para respuestas contextualizadas.
-  Ejemplo:
-  ```text
-  Eres un asistente de ventas de [Nombre de la Empresa]. 
-  Contexto: {company_description}.
-  Productos disponibles: {products}.
-  Responde la siguiente pregunta de un cliente: {user_message}.
-  ```
+- **APIs**: Mistral API, OpenRouter API, Gemini API.
+- **Prompt Engineering**: Diseñado para respuestas contextualizadas.
 
 ---
 
 ## 📄 **Documentación Adicional**
 - [Requisitos Detallados](./docs/requirements.md)
 - [Arquitectura en GCP](./docs/gcp_architecture.md)
-- [Guía de Despliegue](./docs/deployment.md)
+- [Guía de Despliegue](../README.md#-despliegue-en-gcp)
 - [Diagrama de Arquitectura](./plans/architecture_diagram.md)
 
 ---
 
 ## 🚀 **Cómo Empezar**
-1. **Clonar este repositorio** y navegar a `.agents/`.
-2. **Configurar GCP**:
+
+### **1. Configurar el Proyecto**
+1. **Clonar el repositorio**:
    ```bash
-   gcloud init
-   gcloud services enable run.googleapis.com firestore.googleapis.com
+   git clone https://github.com/jmparejaz/agent-optimization-factory.git
+   cd agent-optimization-factory
    ```
-3. **Configurar Twilio**:
-   - Crear cuenta en [Twilio](https://www.twilio.com/try-twilio).
-   - Habilitar WhatsApp Sandbox.
-4. **Desplegar el backend**:
+
+2. **Configurar `config.yaml`**:
+   - Copia los valores de ejemplo y reemplaza los placeholders (`YOUR_*`).
+   - Configura tus API keys (Twilio, Mistral/OpenRouter/Gemini).
+   - Personaliza la base de conocimiento (empresa, productos, FAQ).
+
+3. **Instalar dependencias**:
    ```bash
-   cd .agents/scripts
-   chmod +x deploy.sh
-   ./deploy.sh
+   pip install -r requirements.txt
    ```
+
+### **2. Inicializar Firestore**
+Ejecuta el script para cargar la base de conocimiento:
+```bash
+python init_firestore.py --init
+```
+
+### **3. Desplegar en GCP**
+Ejecuta el script de despliegue:
+```bash
+chmod +x .agents/scripts/deploy.sh
+.agents/scripts/deploy.sh
+```
+
+### **4. Configurar Twilio**
+1. Ve a [Twilio Console](https://console.twilio.com/).
+2. Configura el webhook con la URL generada por el script de despliegue (ej: `https://whatsapp-agent-backend.a.run.app/webhook`).
+
+### **5. Probar el Agente**
+- Envía un mensaje de WhatsApp al número de Twilio.
+- Verifica que el agente responda correctamente.
 
 ---
 
 ## 📞 **Contacto y Soporte**
 - **Issues**: Reportar problemas en el repositorio.
 - **Mejoras**: Propuestas en `./.agents/plans/roadmap.md`.
+- **Documentación**: Consulta el [README](../README.md) para más detalles.
 
 ---
 
@@ -191,3 +217,11 @@ Desarrollar un **agente de WhatsApp para servicio al cliente y ventas** que:
 - **Última actualización**: 2024-10-01
 - **Versión**: 1.0.0
 - **Autor**: Equipo de Desarrollo (Agente de Optimización).
+
+---
+
+## **📌 Notas Importantes**
+1. **Todos los parámetros son configurables en `config.yaml`**: No es necesario editar el código para cambiar configuraciones.
+2. **El proyecto está diseñado para costos ≤ $50/mes**: Usa caching, límites de tokens y escalado controlado.
+3. **El backend está listo para producción**: Solo necesitas configurar tus API keys y desplegar.
+4. **La base de conocimiento se carga desde `config.yaml`**: Personaliza empresa, productos y FAQ allí.

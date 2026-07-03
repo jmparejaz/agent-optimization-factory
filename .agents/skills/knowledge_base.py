@@ -2,6 +2,7 @@
 # Este módulo maneja el acceso a la base de conocimiento (empresa, productos, FAQ) almacenada en Firestore.
 
 from typing import Dict, List, Optional, Any
+from datetime import datetime
 from google.cloud import firestore
 from utils.logging import logger
 from utils.config import (
@@ -43,11 +44,12 @@ class KnowledgeBase:
                 return company_doc.to_dict()
             else:
                 logger.warning("No se encontró información de la empresa en Firestore.")
+                # Retornar valores por defecto (pueden ser sobrescritos por config.yaml al inicializar Firestore)
                 return {
-                    "name": "Mi Empresa",
-                    "description": "Somos una empresa dedicada a ofrecer productos y servicios de calidad.",
-                    "mission": "Ofrecer soluciones innovadoras a nuestros clientes.",
-                    "vision": "Ser líderes en el mercado con productos sostenibles y de alta calidad."
+                    "name": "Tu Empresa",
+                    "description": "Descripción de tu empresa.",
+                    "mission": "Misión de tu empresa.",
+                    "vision": "Visión de tu empresa."
                 }
                 
         except Exception as e:

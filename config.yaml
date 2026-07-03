@@ -1,0 +1,125 @@
+# 📝 Configuración del Agente de WhatsApp para Servicio al Cliente y Ventas
+# Este archivo centraliza todos los parámetros configurables del agente.
+# Reemplaza los placeholders (ej: YOUR_*) con tus valores reales.
+
+# --- Configuración de Twilio (WhatsApp) ---
+twilio:
+  account_sid: "YOUR_TWILIO_ACCOUNT_SID"          # ID de cuenta de Twilio
+  auth_token: "YOUR_TWILIO_AUTH_TOKEN"            # Token de autenticación de Twilio
+  whatsapp_number: "whatsapp:+14155238886"        # Número de WhatsApp de Twilio (Sandbox)
+  webhook_url: "https://YOUR_DOMAIN.a.run.app/webhook"  # URL del webhook (se actualiza al desplegar)
+
+# --- Configuración de Google Cloud Platform (GCP) ---
+gcp:
+  project_id: "YOUR_GCP_PROJECT_ID"               # ID del proyecto en GCP
+  region: "us-central1"                          # Región de GCP (ej: us-central1, europe-west1)
+  
+  # Cloud Run
+  cloud_run:
+    service_name: "whatsapp-agent-backend"        # Nombre del servicio en Cloud Run
+    memory: "2Gi"                                # Memoria (ej: 2Gi, 4Gi)
+    cpu: "1"                                    # Número de CPUs (ej: 1, 2)
+    max_instances: 1                             # Máximo de instancias (para controlar costos)
+    timeout: 300                                # Timeout en segundos (5 minutos)
+
+  # Firestore
+  firestore:
+    mode: "datastore"                            # Modo: "datastore" (económico) o "firestore"
+    collections:
+      knowledge_base: "knowledge_base"          # Colección para información de la empresa
+      products: "products"                      # Colección para productos
+      faq: "faq"                                 # Colección para preguntas frecuentes
+      chat_sessions: "chat_sessions"            # Colección para sesiones de chat
+      response_cache: "response_cache"          # Colección para caching de respuestas
+      token_usage: "token_usage"                # Colección para registrar uso de tokens
+      complaints: "complaints"                   # Colección para quejas
+
+# --- Configuración del Modelo de Lenguaje (LLM) ---
+llm:
+  # Opciones: "mistral-tiny", "mistral-small", "openrouter:mistralai/mistral-tiny", "gemini-1.0-pro"
+  model: "mistral-tiny"                         # Modelo de LLM a usar
+  
+  # API Keys (solo una es necesaria, pero puedes configurar varias para fallback)
+  api_keys:
+    mistral: "YOUR_MISTRAL_API_KEY"             # API Key de Mistral (https://mistral.ai/)
+    openrouter: "YOUR_OPENROUTER_API_KEY"       # API Key de OpenRouter (https://openrouter.ai/)
+    gemini: "YOUR_GEMINI_API_KEY"               # API Key de Gemini (GCP Vertex AI)
+  
+  # Parámetros del LLM
+  temperature: 0.7                             # Creatividad (0 = determinista, 1 = aleatorio)
+  max_tokens: 200                              # Máximo de tokens por respuesta (para controlar costos)
+  caching: true                               # Habilitar caching de respuestas frecuentes
+  cache_expiry_hours: 1                        # Tiempo de expiración del caché (en horas)
+
+# --- Configuración de la Base de Conocimiento ---
+knowledge_base:
+  company:
+    name: "Tu Empresa"                         # Nombre de la empresa
+    description: "Descripción de tu empresa. Ej: Somos una empresa dedicada a ofrecer productos innovadores para el hogar."
+    mission: "Misión de tu empresa. Ej: Ofrecer soluciones prácticas y de alta calidad."
+    vision: "Visión de tu empresa. Ej: Ser líderes en el mercado con productos sostenibles."
+  
+  # Productos (puedes añadir más o modificar estos ejemplos)
+  products:
+    - name: "Producto 1"
+      description: "Descripción del Producto 1. Ej: Un producto revolucionario para el hogar."
+      price: 100
+      features: ["Duradero", "Fácil de usar", "Ecológico"]
+      stock: true
+      category: "hogar"
+    
+    - name: "Producto 2"
+      description: "Descripción del Producto 2. Ej: La solución definitiva para tus necesidades."
+      price: 150
+      features: ["Rápido", "Eficiente", "Garantía de 1 año"]
+      stock: true
+      category: "oficina"
+  
+  # Preguntas Frecuentes (FAQ)
+  faq:
+    - question: "¿Cuál es el precio del Producto 1?"
+      answer: "El precio del Producto 1 es $100. Incluye garantía de 1 año."
+    
+    - question: "¿Ofrecen garantía en sus productos?"
+      answer: "Sí, todos nuestros productos tienen garantía de 1 año contra defectos de fábrica."
+    
+    - question: "¿Cuánto cuesta el envío?"
+      answer: "El envío es gratuito para compras mayores a $200. Para compras menores, el costo de envío es de $10."
+    
+    - question: "¿Cómo puedo realizar una compra?"
+      answer: "Puedes contactarnos por WhatsApp y un agente te guiará en el proceso de compra. Aceptamos pagos con tarjeta y transferencia bancaria."
+
+# --- Configuración de Logging ---
+logging:
+  level: "INFO"                                # Nivel de logging: DEBUG, INFO, WARNING, ERROR
+  format: "json"                               # Formato: "json" (para Cloud Logging) o "text"
+
+# --- Configuración de Monitoreo ---
+monitoring:
+  max_cost_per_month: 50                       # Límite de costo mensual en USD
+  alert_threshold: 40                          # Enviar alerta si el costo supera este valor (USD)
+  
+# --- Configuración de Escalamiento a Humanos ---
+escalation:
+  # Opciones para notificar a humanos cuando el agente no puede responder
+  notify_via:
+    email: false                               # Notificar por email
+    slack: false                               # Notificar por Slack
+  
+  # Configuración de email (opcional)
+  email:
+    smtp_server: "smtp.gmail.com"             # Servidor SMTP
+    smtp_port: 587                             # Puerto SMTP
+    smtp_user: "YOUR_EMAIL@gmail.com"          # Usuario de email
+    smtp_password: "YOUR_EMAIL_PASSWORD"      # Contraseña de email
+    support_email: "soporte@tuempresa.com"     # Email de soporte para recibir notificaciones
+  
+  # Configuración de Slack (opcional)
+  slack:
+    webhook_url: "YOUR_SLACK_WEBHOOK_URL"      # URL del webhook de Slack
+
+# --- Configuración de Pruebas ---
+testing:
+  use_ngrok: true                              # Usar ngrok para pruebas locales
+  ngrok_port: 8000                             # Puerto local para ngrok
+  test_phone_number: "whatsapp:+1234567890"    # Número de prueba (opcional)
